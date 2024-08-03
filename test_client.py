@@ -2,7 +2,7 @@ import math
 import socket
 import os
 
-filename = './test-send/TestSubjectNo1.jpg'
+filename = './test-send/symple_logo.png'
 
 HOST = '127.0.0.1'
 PORT = 17701
@@ -15,7 +15,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         print('Received Ack 1')
 
         filesize = os.path.getsize(filename)
-        s.sendall(f'{filename.split('/')[-1]}:{filesize}'.encode())
+        s.sendall(f"{filename.split('/')[-1]}:{filesize}".encode())
         ack = s.recv(1024)
 
         print('Received Ack 2')
