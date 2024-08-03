@@ -18,6 +18,9 @@ def open_connection(port):
     host = ''
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((host, port))
+
+        print_qr_address(f'192.168.14.144:{port}')
+
         print(f'Listening at port {port}...')
         s.listen(1)
         conn, addr = s.accept()
