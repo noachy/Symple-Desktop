@@ -14,14 +14,13 @@ def print_qr_address(data):
 
     qr.print_ascii()
 
-def open_connection(port):
-    host = ''
-    
-    print_qr_address(f'192.168.14.144:{port}')
-
+def open_connection():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s: # TODO : wrap socket with TLS
-        s.bind((host, port))
-        print(f'Listening at port {port}...')
+        s.bind(('', 0))
+        port = s.getsockname()[1]
+        local_address = socket.gethostbyname(socket.gethostname())
+        print(f'Listening at {local_address}:{port}...')
+        print_qr_address(f'{local_address}:{port}')
         s.listen(1)
         conn, addr = s.accept()
         with conn:
@@ -53,7 +52,7 @@ def open_connection(port):
                 else:
                     conn.sendall(b'Inv : data is not S or Q')
 
-open_connection(17701)
+open_connection()
 
         
     
