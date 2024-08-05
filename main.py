@@ -16,6 +16,9 @@ def print_qr_address(data):
 
 def open_connection(port):
     host = ''
+    
+    print_qr_address(f'192.168.14.144:{port}')
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s: # TODO : wrap socket with TLS
         s.bind((host, port))
         print(f'Listening at port {port}...')
@@ -24,30 +27,31 @@ def open_connection(port):
         with conn:
             print('Connected by', addr)
             while True:
-                data = conn.recv(1024)
+                data = conn.recv(1)
 
                 if not data or data.decode() == 'Q':
                     break
                 if data.decode() == 'S':
-                    conn.sendall(b'Ack')
+                    conn.sendall(b'AckCom')
                     data = conn.recv(1024)
 
                     print(f'Received {data.decode()}')
 
-                    conn.sendall(b'Ack')
                     f_name, num_bytes = data.decode().split(':')
                     if '.' in f_name and num_bytes.isdigit():
                         with open(f'./test-receive/{f_name}', 'wb') as f:
+                            conn.sendall(b'AckFile')
                             received_bytes = 0
                             while received_bytes < int(num_bytes):
                                 data = conn.recv(1024)    
                                 f.write(data)
                                 received_bytes += len(data)
+                                print([f'{received_bytes}/{int(num_bytes)}'])
                         conn.sendall(b'Fin')
                     else:
-                        conn.sendall(b'Inv')
+                        conn.sendall(b'Inv : not digit')
                 else:
-                    conn.sendall(b'Inv')
+                    conn.sendall(b'Inv : data is not S or Q')
 
 open_connection(17701)
 
