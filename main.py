@@ -16,7 +16,7 @@ def print_qr_address(data):
 
 def open_connection(port):
     host = ''
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s: # wrap socket with TLS
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s: # TODO : wrap socket with TLS
         s.bind((host, port))
         print(f'Listening at port {port}...')
         s.listen(1)
@@ -25,9 +25,6 @@ def open_connection(port):
             print('Connected by', addr)
             while True:
                 data = conn.recv(1024)
-
-                print(f'Received {data.decode()}') # causes error when trying to establish connection with phone
-                # error : UnicodeDecodeError: 'utf-8' codec can't decode byte 0xf6 in position 4: invalid start byte
 
                 if not data or data.decode() == 'Q':
                     break
