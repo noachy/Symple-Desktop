@@ -1,6 +1,7 @@
 import math
 import qrcode
 import socket
+import click
 
 def print_qr_address(data):
     qr = qrcode.QRCode(
@@ -53,7 +54,8 @@ def open_connection():
                     else:
                         conn.sendall(b'Inv : data is not S or Q')
 
-open_connection()
+if __name__ == '__main__':
+    open_connection()
 
         
     
