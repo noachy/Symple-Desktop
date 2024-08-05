@@ -19,8 +19,8 @@ def open_connection():
         s.bind(('', 0))
         port = s.getsockname()[1]
         local_address = socket.gethostbyname(socket.gethostname())
-        print(f'Listening at {local_address}:{port}...')
         print_qr_address(f'{local_address}:{port}')
+        print(f'Listening at {local_address}:{port}...')
         s.listen(1)
         conn, addr = s.accept()
         with conn:
