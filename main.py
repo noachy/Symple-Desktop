@@ -21,36 +21,37 @@ def open_connection():
         local_address = socket.gethostbyname(socket.gethostname())
         print_qr_address(f'{local_address}:{port}')
         print(f'Listening at {local_address}:{port}...')
-        s.listen(1)
-        conn, addr = s.accept()
-        with conn:
-            print('Connected by', addr)
-            while True:
-                data = conn.recv(1)
+        while True:
+            s.listen(1)
+            conn, addr = s.accept()
+            with conn:
+                print('Connected by', addr)
+                while True:
+                    data = conn.recv(1)
 
-                if not data or data.decode() == 'Q':
-                    break
-                if data.decode() == 'S':
-                    conn.sendall(b'AckCom')
-                    data = conn.recv(1024)
+                    if not data or data.decode() == 'Q':
+                        break
+                    if data.decode() == 'S':
+                        conn.sendall(b'AckCom')
+                        data = conn.recv(1024)
 
-                    print(f'Received {data.decode()}')
+                        print(f'Received {data.decode()}')
 
-                    f_name, num_bytes = data.decode().split(':')
-                    if '.' in f_name and num_bytes.isdigit():
-                        with open(f'./test-receive/{f_name}', 'wb') as f:
-                            conn.sendall(b'AckFile')
-                            received_bytes = 0
-                            while received_bytes < int(num_bytes):
-                                data = conn.recv(1024)    
-                                f.write(data)
-                                received_bytes += len(data)
-                                print([f'{received_bytes}/{int(num_bytes)}'])
-                        conn.sendall(b'Fin')
+                        f_name, num_bytes = data.decode().split(':')
+                        if '.' in f_name and num_bytes.isdigit():
+                            with open(f'./test-receive/{f_name}', 'wb') as f:
+                                conn.sendall(b'AckFile')
+                                received_bytes = 0
+                                while received_bytes < int(num_bytes):
+                                    data = conn.recv(1024)    
+                                    f.write(data)
+                                    received_bytes += len(data)
+                                    print([f'{received_bytes}/{int(num_bytes)}'])
+                            conn.sendall(b'Fin')
+                        else:
+                            conn.sendall(b'Inv : not digit')
                     else:
-                        conn.sendall(b'Inv : not digit')
-                else:
-                    conn.sendall(b'Inv : data is not S or Q')
+                        conn.sendall(b'Inv : data is not S or Q')
 
 open_connection()
 
