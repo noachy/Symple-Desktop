@@ -37,7 +37,7 @@ def open_connection():
 
                         print(f'Received {data.decode()}')
 
-                        f_name, num_bytes = data.decode().split(':')
+                        f_name, num_bytes, num_updates = data.decode().split(':')
                         if '.' in f_name and num_bytes.isdigit():
                             with open(f'./test-receive/{f_name}', 'wb') as f:
                                 conn.sendall(b'AckFile')
@@ -46,7 +46,8 @@ def open_connection():
                                     data = conn.recv(1024)    
                                     f.write(data)
                                     received_bytes += len(data)
-                                    print([f'{received_bytes}/{int(num_bytes)}'])
+                                    if math.floor((received_bytes / 1024) % (math.ceil(int(num_bytes) / 1024) / int(num_updates))) == 0:
+                                        conn.sendall((f'GOT {received_bytes}').encode())
                             conn.sendall(b'Fin')
                         else:
                             conn.sendall(b'Inv : not digit')
