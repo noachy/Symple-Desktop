@@ -40,7 +40,7 @@ def open_connection():
                         f_name, num_bytes, num_updates = data.decode().split(':')
                         if '.' in f_name and num_bytes.isdigit():
                             with open(f'./test-receive/{f_name}', 'wb') as f:
-                                conn.sendall(b'AckFile')
+                                conn.sendall(b'AckFle')
                                 received_bytes = 0
                                 while received_bytes < int(num_bytes):
                                     data = conn.recv(1024)    
