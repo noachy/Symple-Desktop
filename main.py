@@ -32,24 +32,22 @@ def open_connection():
                     if not data or data.decode() == 'Q':
                         break
                     if data.decode() == 'S':
-                        # conn.sendall(b'AckCom')
-                        fileInfoLen = conn.recv(3)
-                        data = conn.recv(int(fileInfoLen.decode()))
+                        conn.sendall(b'AckCom')
+                        data = conn.recv(1024)
 
-                        # print(f'Received {data.decode()}')
+                        print(f'Received {data.decode()}')
 
                         f_name, num_bytes, num_updates = data.decode().split(':')
                         if '.' in f_name and num_bytes.isdigit():
                             with open(f'./test-receive/{f_name}', 'wb') as f:
-                                # conn.sendall(b'AckFle')
+                                conn.sendall(b'AckFle')
                                 received_bytes = 0
                                 while received_bytes < int(num_bytes):
                                     data = conn.recv(1024)    
                                     f.write(data)
                                     received_bytes += len(data)
                                     if math.floor((received_bytes / 1024) % (math.ceil(int(num_bytes) / 1024) / int(num_updates))) == 0:
-                                        got_message = f'GOT {received_bytes}'
-                                        conn.sendall((f'{str(len(got_message)).zfill(3)}{got_message}').encode())
+                                        conn.sendall((f' GOT {received_bytes}').encode())
                             conn.sendall(b'Fin')
                         else:
                             conn.sendall(b'Inv : not digit')
