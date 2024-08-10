@@ -47,8 +47,8 @@ def open_connection():
                                     f.write(data)
                                     received_bytes += len(data)
                                     if math.floor((received_bytes / 1024) % (math.ceil(int(num_bytes) / 1024) / int(num_updates))) == 0:
-                                        conn.sendall((f' GOT {received_bytes}').encode())
-                            conn.sendall(b' Fin')
+                                        conn.sendall((f'GOT {received_bytes} ').encode())
+                            conn.sendall(b'Fin')
                         else:
                             conn.sendall(b'Inv : not digit')
                     else:
