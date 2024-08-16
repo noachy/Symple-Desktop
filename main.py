@@ -45,9 +45,9 @@ def app():
 
                         if '.' in f_name and num_bytes.isdigit():
                             with open(f'./test-receive/{f_name}', 'wb') as f:
-                                print(f'Receiving {f_name}...')
+                                print(f'Receiving {f_name}')
                                 conn.sendall(b'AckFle')
-                                for i in tqdm(range(math.ceil(num_bytes / 1024))):
+                                for i in tqdm(range(math.ceil(int(num_bytes) / 1024))):
                                     data = conn.recv(1024)
                                     f.write(data)
                                     if math.floor(i % (math.ceil(int(num_bytes) / 1024) / int(num_updates))) == 0:
