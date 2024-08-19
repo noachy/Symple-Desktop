@@ -1,7 +1,8 @@
 import math
 import qrcode
 import socket
-import tqdm
+
+from tqdm import tqdm
 
 
 def print_qr_address(data):
@@ -50,9 +51,9 @@ def app():
 
                                 # for loop is causing problems. was => while recived_bytes < num_bytes
                                 # Error Message : UnicodeDecodeError: 'utf-8' codec can't decode byte 0xae in position 0: invalid start byte
-                                # from pictures i transfered we can infer that the program misses the last data chunk. 
+                                # from pictures i transfered we can infer that the program misses the last data chunk.
                                 # and moves on with the rest of the file in the buffer which causes an error because the program tries to read it as a utf8 char
-                                for i in tqdm.tqdm(range(math.ceil(int(num_bytes) / 1024))):
+                                for i in tqdm(range(math.ceil(int(num_bytes) / 1024))):
                                     data = conn.recv(1024)
                                     f.write(data)
                                     if math.floor(i % (math.ceil(int(num_bytes) / 1024) / int(num_updates))) == 0:
