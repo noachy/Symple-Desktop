@@ -44,11 +44,12 @@ def app():
                         conn.sendall(b'AckCom')
                         data = conn.recv(BUFFER_SIZE)
 
-                        f_name, num_bytes, num_updates = data.decode().split(':')
+                        f_name, num_bytes = data.decode().split(':')
 
-                        num_bytes = int(num_bytes)
 
                         if '.' in f_name and num_bytes.isdigit():
+                            num_bytes = int(num_bytes)
+                            
                             with open(f'./test-receive/{f_name}', 'wb') as f:
                                 print(f'Receiving {f_name}')
                                 conn.sendall(b'AckFle')
