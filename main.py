@@ -55,7 +55,7 @@ def app():
                                 received_bytes = 0
                                 bytes_from_last_got = 0
 
-                                with tqdm(total=num_bytes) as pbar:
+                                with tqdm(total=num_bytes) as prog_bar:
                                     while received_bytes < num_bytes:
                                         data = conn.recv(BUFFER_SIZE)
                                         f.write(data)
@@ -67,7 +67,7 @@ def app():
                                                 (f'GOT {received_bytes / num_bytes} ').encode())
                                             bytes_from_last_got = 0
 
-                                        pbar.update(BUFFER_SIZE)
+                                        prog_bar.update(BUFFER_SIZE)
                                 print('Done!')
                             conn.sendall(b'Fin')
                         else:
