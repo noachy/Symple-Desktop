@@ -48,17 +48,14 @@ def app():
                             with open(f'./test-receive/{f_name}', 'wb') as f:
                                 print(f'Receiving {f_name}')
                                 conn.sendall(b'AckFle')
-
-                                # for loop is causing problems. was => while recived_bytes < num_bytes
-                                # Error Message : UnicodeDecodeError: 'utf-8' codec can't decode byte 0xae in position 0: invalid start byte
-                                # from pictures i transfered we can infer that the program misses the last data chunk.
-                                # and moves on with the rest of the file in the buffer which causes an error because the program tries to read it as a utf8 char
-                                for i in tqdm(range(math.ceil(int(num_bytes) / 1024))):
+                                received_bytes = 0
+                                while received_bytes < int(num_bytes):
                                     data = conn.recv(1024)
                                     f.write(data)
-                                    if math.floor(i % (math.ceil(int(num_bytes) / 1024) / int(num_updates))) == 0:
+                                    received_bytes += len(data)
+                                    if math.floor((received_bytes / 1024) % (math.ceil(int(num_bytes) / 1024) / int(num_updates))) == 0:
                                         conn.sendall(
-                                            (f'GOT {i * 1024} ').encode())
+                                            (f'GOT {received_bytes} ').encode())
                                 print('Done!')
                             conn.sendall(b'Fin')
                         else:
