@@ -60,6 +60,7 @@ def app():
                                         data = conn.recv(BUFFER_SIZE)
                                         f.write(data)
                                         received_bytes += len(data)
+                                        bytes_from_last_got += len(data)
 
                                         if bytes_from_last_got > 333333:
                                             conn.sendall(
