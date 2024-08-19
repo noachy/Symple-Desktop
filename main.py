@@ -46,17 +46,16 @@ def app():
 
                         f_name, num_bytes = data.decode().split(':')
 
-
                         if '.' in f_name and num_bytes.isdigit():
                             num_bytes = int(num_bytes)
-                            
+
                             with open(f'./test-receive/{f_name}', 'wb') as f:
                                 print(f'Receiving {f_name}')
                                 conn.sendall(b'AckFle')
                                 received_bytes = 0
                                 bytes_from_last_got = 0
 
-                                with tqdm(total=num_bytes) as prog_bar:
+                                with tqdm(total=num_bytes, disable=True) as prog_bar:
                                     while received_bytes < num_bytes:
                                         data = conn.recv(BUFFER_SIZE)
                                         f.write(data)
