@@ -4,6 +4,8 @@ import socket
 
 from tqdm import tqdm
 
+BUFFER_SIZE = 1024
+
 
 def print_qr_address(data):
     qr = qrcode.QRCode(
@@ -40,22 +42,31 @@ def app():
                         break
                     if data.decode() == 'S':
                         conn.sendall(b'AckCom')
-                        data = conn.recv(1024)
+                        data = conn.recv(BUFFER_SIZE)
 
                         f_name, num_bytes, num_updates = data.decode().split(':')
+
+                        num_bytes = int(num_bytes)
 
                         if '.' in f_name and num_bytes.isdigit():
                             with open(f'./test-receive/{f_name}', 'wb') as f:
                                 print(f'Receiving {f_name}')
                                 conn.sendall(b'AckFle')
                                 received_bytes = 0
-                                while received_bytes < int(num_bytes):
-                                    data = conn.recv(1024)
-                                    f.write(data)
-                                    received_bytes += len(data)
-                                    if math.floor((received_bytes / 1024) % (math.ceil(int(num_bytes) / 1024) / int(num_updates))) == 0:
-                                        conn.sendall(
-                                            (f'GOT {received_bytes} ').encode())
+                                bytes_from_last_got = 0
+
+                                with tqdm(total=num_bytes) as pbar:
+                                    while received_bytes < num_bytes:
+                                        data = conn.recv(BUFFER_SIZE)
+                                        f.write(data)
+                                        received_bytes += len(data)
+
+                                        if bytes_from_last_got > 333333:
+                                            conn.sendall(
+                                                (f'GOT {received_bytes / num_bytes} ').encode())
+                                            bytes_from_last_got = 0
+
+                                        pbar.update(BUFFER_SIZE)
                                 print('Done!')
                             conn.sendall(b'Fin')
                         else:
