@@ -26,6 +26,7 @@ def app():
         port = s.getsockname()[1]
         local_address = socket.gethostbyname(socket.gethostname())
         print('Scan the following QR code on the mobile app in order to establish a connection: ')
+        # implement deep-links
         print_qr_address(f'{local_address}:{port}')
         print(f'Listening at {local_address}:{port}...')
         while True:
@@ -55,7 +56,7 @@ def app():
                                 received_bytes = 0
                                 bytes_from_last_got = 0
 
-                                with tqdm(total=num_bytes, disable=True) as prog_bar:
+                                with tqdm(total=num_bytes) as prog_bar:
                                     while received_bytes < num_bytes:
                                         data = conn.recv(BUFFER_SIZE)
                                         f.write(data)
