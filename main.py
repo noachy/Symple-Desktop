@@ -24,7 +24,7 @@ def app():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # TODO : wrap socket with TLS
         s.bind(('', 0))
         port = s.getsockname()[1]
-        local_address = socket.gethostbyname(socket.gethostname())
+        local_address = socket.gethostbyname_ex(socket.gethostname())[2][1]
         print('Scan the following QR code on the mobile app in order to establish a connection: ')
         # implement deep-links
         print_qr_address(f'{local_address}:{port}')
