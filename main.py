@@ -3,7 +3,6 @@ import qrcode
 import base64
 import socket
 import threading
-import asyncio
 
 from io import BytesIO
 
@@ -45,15 +44,18 @@ class CommHandler:
         while True:
             s.listen(1)
             conn, _ = s.accept()
+            print('Accepted connection')
             with conn:
                 while True:
                     data = conn.recv(1)
+                    print(f'Received {data.decode()}')
 
                     if not data or data.decode() == 'Q':
                         break
 
-                    if data.decode == 'S':
+                    if data.decode() == 'S':
                         conn.sendall(b'AckCom')
+                        print('Sent AckCom')
                         data = conn.recv(self.buffer_size)
 
                         f_name, num_bytes = data.decode().split(':')
@@ -79,10 +81,12 @@ class CommHandler:
                                         bytes_from_last_got = 0
 
                             conn.sendall(b'Fin')
+                            print('Sent Fin')
                         else:
-                            conn.sendall(b'Inv : not digit')
+                            conn.sendall(b'Inv : NaN')
+                            print('Sent Inv: NaN')
                     else:
-                        conn.sendall(b'Inv : data is not S or Q')
+                        conn.sendall(b'Inv : Data not S or Q')
 
 
 def main(page):
