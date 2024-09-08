@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Folders
+test-receive
+test-send
+
 # Distribution / packaging
 .Python
 build/
