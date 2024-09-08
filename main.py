@@ -7,6 +7,15 @@ import threading
 from io import BytesIO
 
 
+# TODO: Add file receive screen -> Switch to screen after connection established -> Return after connection lost
+# TODO: Add titles and instructions
+# TODO: Add styling
+# TODO: Add option for choosing default download location -> Implement Flet file picker!
+# TODO: Test code and implement error handling where needed
+# TODO: Make QR round instead of pointy
+
+# TODO: ...more neat features :)
+
 class CommHandler:
     buffer_size = 1024
 
