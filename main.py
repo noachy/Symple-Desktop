@@ -61,7 +61,11 @@ class CommHandler:
                 ping(dest_addr=default_gateway, src_addr=item)
                 self.ip_address = item
             except Exception as error:
-                pass
+                try:
+                    ping(dest_addr='8.8.8.8', src_addr=item)
+                    self.ip_address = item
+                except:
+                    pass
             finally:
                 if self.ip_address == '':
                     print('No interface able to connect to local network.')
