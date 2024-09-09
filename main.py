@@ -3,7 +3,10 @@ import qrcode
 import base64
 import socket
 import threading
+import psutil
+import netifaces
 
+from ping3 import ping
 from io import BytesIO
 
 
@@ -24,10 +27,10 @@ class CommHandler:
         self.container: ft.Container = container
         self.ip_address: str = None
         self.port: int = None
-        self.is_connected = False
+        self.is_ready = False
 
     def gen_addinf_qr_b64str(self) -> str:
-        if not self.is_connected:
+        if not self.is_ready:
             return
         data = f'{self.ip_address}:{self.port}'
         qr_img = qrcode.make(data, border=2)
@@ -45,8 +48,26 @@ class CommHandler:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind(('', 0))
         self.port = s.getsockname()[1]
-        self.ip_address = socket.gethostbyname_ex(socket.gethostname())[2][1]
-        self.is_connected = True
+
+        available_interfaces = [
+            x for x in psutil.net_if_stats() if psutil.net_if_stats()[x].isup]
+        available_addresses = [psutil.net_if_addrs(
+        )[x][y].address for x in available_interfaces for y in range(len(psutil.net_if_addrs()[x])) if psutil.net_if_addrs()[x][y].family == socket.AF_INET]
+
+        default_gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
+
+        for item in available_addresses:
+            try:
+                ping(dest_addr=default_gateway, src_addr=item)
+                self.ip_address = item
+            except Exception as error:
+                pass
+            finally:
+                if self.ip_address == '':
+                    print('No interface able to connect to local network.')
+                    return
+
+        self.is_ready = True
 
         self.update_container()
 
