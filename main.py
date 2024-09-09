@@ -35,7 +35,7 @@ class CommHandler:
         data = f'{self.ip_address}:{self.port}'
         qr_img = qrcode.make(data, border=2)
         buffered = BytesIO()
-        qr_img.save(buffered, format='JPEG')
+        qr_img.save(buffered)
         qr_str_b64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
         return qr_str_b64
 
