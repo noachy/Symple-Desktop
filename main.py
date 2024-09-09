@@ -25,11 +25,12 @@ def app():
         s.bind(('', 0))
         port = s.getsockname()[1]
         local_address = socket.gethostbyname(socket.gethostname())
-        print('Scan the following QR code on the mobile app in order to establish a connection: ')
-        # implement deep-links
-        print_qr_address(f'{local_address}:{port}')
-        print(f'Listening at {local_address}:{port}...')
         while True:
+            print("\033[2J\033[H", end="", flush=True)
+            print('Scan the following QR code on the mobile app in order to establish a connection: ')
+            # implement deep-links
+            print_qr_address(f'{local_address}:{port}')
+            print(f'Listening at {local_address}:{port}...')
             s.listen(1)
             conn, addr = s.accept()
             print("\033[2J\033[H", end="", flush=True)
