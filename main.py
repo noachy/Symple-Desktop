@@ -39,8 +39,9 @@ class CommHandler:
     def gen_addinf_qr_b64str(self) -> str:
         if not self.is_ready:
             return
+
         data = f'{self.ip_address}:{self.port}'
-        qr_img = qrcode.make(data, border=2)
+        qr_img = qrcode.make(data, border=2, )
         buffered = BytesIO()
         qr_img.save(buffered)
         qr_str_b64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
@@ -57,7 +58,6 @@ class CommHandler:
             public_exponent=65537,
 
             key_size=2048,
-
         )
         subject = issuer = x509.Name([
 
@@ -107,9 +107,7 @@ class CommHandler:
 
         ).sign(key, hashes.SHA256())
 
-        with open("./pem_files/certificate.pem", "wb") as f:
-
-            f.write(cert.public_bytes(serialization.Encoding.PEM))
+        with open('./pem_files/key.pem', 'wb') as f:
             f.write(key.private_bytes(
 
                 encoding=serialization.Encoding.PEM,
@@ -119,6 +117,10 @@ class CommHandler:
                 encryption_algorithm=serialization.NoEncryption(),
 
             ))
+
+        with open("./pem_files/certificate.pem", "wb") as f:
+
+            f.write(cert.public_bytes(serialization.Encoding.PEM))
 
     def connect(self) -> None:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -148,6 +150,8 @@ class CommHandler:
                     print('No interface able to connect to local network.')
                     return
 
+        self.create_cert_files()
+
         self.is_ready = True
 
         self.update_container()
@@ -155,8 +159,8 @@ class CommHandler:
         while True:
             sock.listen(1)
             context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS_SERVER)
-            self.create_cert_files()
-            context.load_cert_chain(certfile='./pem_files/certificate.pem')
+            context.load_cert_chain(
+                certfile='./pem_files/certificate.pem', keyfile='./pem_files/key.pem')
             with context.wrap_socket(sock, server_side=True) as ssock:
                 conn, _ = ssock.accept()
                 while True:
