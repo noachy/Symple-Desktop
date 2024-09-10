@@ -5,7 +5,14 @@ import socket
 import threading
 import psutil
 import netifaces
+import ssl
+import datetime
 
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from ping3 import ping
 from io import BytesIO
 
@@ -44,10 +51,80 @@ class CommHandler:
             src_base64=self.gen_addinf_qr_b64str())
         self.page.update()
 
+    def create_cert_files(self) -> None:
+        key = rsa.generate_private_key(
+
+            public_exponent=65537,
+
+            key_size=2048,
+
+        )
+        subject = issuer = x509.Name([
+
+            x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
+
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "California"),
+
+            x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
+
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "My Company"),
+
+            x509.NameAttribute(NameOID.COMMON_NAME, "mysite.com"),
+
+        ])
+
+        cert = x509.CertificateBuilder().subject_name(
+
+            subject
+
+        ).issuer_name(
+
+            issuer
+
+        ).public_key(
+
+            key.public_key()
+
+        ).serial_number(
+
+            x509.random_serial_number()
+
+        ).not_valid_before(
+
+            datetime.datetime.now(datetime.timezone.utc)
+
+        ).not_valid_after(
+
+            datetime.datetime.now(datetime.timezone.utc) +
+            datetime.timedelta(days=10)
+
+        ).add_extension(
+
+            x509.SubjectAlternativeName([x509.DNSName("localhost")]),
+
+            critical=False,
+
+
+        ).sign(key, hashes.SHA256())
+
+        with open("./pem_files/certificate.pem", "wb") as f:
+
+            f.write(cert.public_bytes(serialization.Encoding.PEM))
+            f.write(key.private_bytes(
+
+                encoding=serialization.Encoding.PEM,
+
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+
+                encryption_algorithm=serialization.NoEncryption(),
+
+            ))
+
     def connect(self) -> None:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(('', 0))
-        self.port = s.getsockname()[1]
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        sock.bind(('', 0))
+        self.port = sock.getsockname()[1]
 
         available_interfaces = [
             x for x in psutil.net_if_stats() if psutil.net_if_stats()[x].isup]
@@ -76,10 +153,12 @@ class CommHandler:
         self.update_container()
 
         while True:
-            s.listen(1)
-            conn, _ = s.accept()
-            print('Accepted connection')
-            with conn:
+            sock.listen(1)
+            context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS_SERVER)
+            self.create_cert_files()
+            context.load_cert_chain(certfile='./pem_files/certificate.pem')
+            with context.wrap_socket(sock, server_side=True) as ssock:
+                conn, _ = ssock.accept()
                 while True:
                     data = conn.recv(1)
                     print(f'Received {data.decode()}')
@@ -124,15 +203,15 @@ class CommHandler:
 
 
 def main(page):
-    container = ft.Container(ft.ProgressRing())
+    con_container = ft.Container(ft.ProgressRing())
 
-    comm_handler = CommHandler(page, container)
+    comm_handler = CommHandler(page, con_container)
     t_comm = threading.Thread(target=comm_handler.connect)
     t_comm.start()
 
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    page.add(container)
+    page.add(con_container)
 
 
 ft.app(main)
