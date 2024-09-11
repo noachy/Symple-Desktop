@@ -107,7 +107,10 @@ class CommHandler:
 
         ).sign(key, hashes.SHA256())
 
-        with open('./pem_files/key.pem', 'wb') as f:
+        with open("./pem_files/certchain.pem", "wb") as f:
+
+            f.write(cert.public_bytes(serialization.Encoding.PEM))
+
             f.write(key.private_bytes(
 
                 encoding=serialization.Encoding.PEM,
@@ -117,10 +120,6 @@ class CommHandler:
                 encryption_algorithm=serialization.NoEncryption(),
 
             ))
-
-        with open("./pem_files/certificate.pem", "wb") as f:
-
-            f.write(cert.public_bytes(serialization.Encoding.PEM))
 
     def connect(self) -> None:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -160,7 +159,7 @@ class CommHandler:
             sock.listen(1)
             context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS_SERVER)
             context.load_cert_chain(
-                certfile='./pem_files/certificate.pem', keyfile='./pem_files/key.pem')
+                certfile='./pem_files/certchain.pem')
             with context.wrap_socket(sock, server_side=True) as ssock:
                 conn, _ = ssock.accept()
                 while True:
