@@ -8,6 +8,7 @@ import netifaces
 import ssl
 import datetime
 
+from enum import Enum
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
@@ -22,24 +23,59 @@ from io import BytesIO
 # TODO: Add styling
 # TODO: Add option for choosing default download location -> Implement Flet file picker!
 # TODO: Test code and implement error handling where needed
-# TODO: Make QR round instead of pointy
 
 # TODO: ...more neat features :)
+
+class CommState(Enum):
+    EMPTY = 1
+    WAITING = 2
+    CONNECTED = 3
+
 
 class CommHandler:
     buffer_size = 1024
 
-    def __init__(self, page, container):
+    def __init__(self, page, column):
         self.page: ft.Page = page
-        self.container: ft.Container = container
+        self.column: ft.Column = column
         self.ip_address: str = None
         self.port: int = None
-        self.is_ready = False
+        self._comm_state = CommState.EMPTY
+
+    def update_content(self) -> None:
+        match self.comm_state:
+            case CommState.EMPTY:
+                self.column.controls = [
+                    ft.Container(
+                        content=ft.ProgressRing())]
+                self.page.update()
+            case CommState.WAITING:
+                self.column.controls = [
+                    ft.Container(
+                        border_radius=20,
+                        content=ft.Image(
+                            src_base64=self.gen_addinf_qr_b64str())),
+                    ft.Text(
+                        value='Scan the code using the app',
+                        size=24)]
+                self.page.update()
+            case CommState.CONNECTED:
+                self.column.controls = [
+                    ft.Text(
+                        value='Placeholder for file receiving screen',
+                        size=24)]
+                self.page.update()
+
+    @property
+    def comm_state(self):
+        return self._comm_state
+
+    @comm_state.setter
+    def comm_state(self, comm_state: CommState) -> None:
+        self._comm_state = comm_state
+        self.update_content()
 
     def gen_addinf_qr_b64str(self) -> str:
-        if not self.is_ready:
-            return
-
         data = f'{self.ip_address}:{
             self.port}'.encode()
         qr_img = qrcode.make(base64.b64encode(data).decode('utf-8'), border=2)
@@ -47,11 +83,6 @@ class CommHandler:
         qr_img.save(buffered)
         qr_str_b64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
         return qr_str_b64
-
-    def update_container(self) -> None:
-        self.container.content = ft.Image(
-            src_base64=self.gen_addinf_qr_b64str())
-        self.page.update()
 
     def create_cert_files(self) -> None:
         key = rsa.generate_private_key(
@@ -152,9 +183,7 @@ class CommHandler:
 
         self.create_cert_files()
 
-        self.is_ready = True
-
-        self.update_container()
+        self.comm_state = CommState.WAITING
 
         while True:
             sock.listen(1)
@@ -163,6 +192,7 @@ class CommHandler:
                 certfile='./pem_files/certchain.pem')
             with context.wrap_socket(sock, server_side=True) as ssock:
                 conn, _ = ssock.accept()
+                self.comm_state = CommState.CONNECTED
                 while True:
                     data = conn.recv(1)
                     print(f'Received {data.decode()}')
@@ -207,16 +237,21 @@ class CommHandler:
 
 
 def main(page):
-    con_container = ft.Container(ft.ProgressRing(), border_radius=20)
+    main_column = ft.Column(
+        alignment=ft.MainAxisAlignment.CENTER,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        controls=[ft.Container(ft.ProgressRing(), border_radius=20)])
 
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+    page.appbar = ft.AppBar(
+        leading=ft.IconButton(icon=ft.icons.SETTINGS))
 
-    comm_handler = CommHandler(page, con_container)
+    comm_handler = CommHandler(page, main_column)
     t_comm = threading.Thread(target=comm_handler.connect)
     t_comm.start()
 
-    page.add(con_container)
+    page.add(main_column)
 
 
 ft.app(main)
