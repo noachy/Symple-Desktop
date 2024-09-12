@@ -40,9 +40,9 @@ class CommHandler:
         if not self.is_ready:
             return
 
-        data = base64.b64encode(f'{self.ip_address}:{
-                                self.port}'.encode()).decode('utf-8')
-        qr_img = qrcode.make(data, border=2)
+        data = f'{self.ip_address}:{
+            self.port}'.encode()
+        qr_img = qrcode.make(base64.b64encode(data).decode('utf-8'), border=2)
         buffered = BytesIO()
         qr_img.save(buffered)
         qr_str_b64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
@@ -207,14 +207,15 @@ class CommHandler:
 
 
 def main(page):
-    con_container = ft.Container(ft.ProgressRing())
+    con_container = ft.Container(ft.ProgressRing(), border_radius=20)
+
+    page.vertical_alignment = ft.MainAxisAlignment.CENTER
+    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
     comm_handler = CommHandler(page, con_container)
     t_comm = threading.Thread(target=comm_handler.connect)
     t_comm.start()
 
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.add(con_container)
 
 
