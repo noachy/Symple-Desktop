@@ -40,8 +40,9 @@ class CommHandler:
         if not self.is_ready:
             return
 
-        data = f'{self.ip_address}:{self.port}'
-        qr_img = qrcode.make(data, border=2, )
+        data = base64.b64encode(f'{self.ip_address}:{
+                                self.port}'.encode()).decode('utf-8')
+        qr_img = qrcode.make(data, border=2)
         buffered = BytesIO()
         qr_img.save(buffered)
         qr_str_b64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
