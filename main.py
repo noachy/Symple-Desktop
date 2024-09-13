@@ -236,16 +236,47 @@ class CommHandler:
                         conn.sendall(b'Inv : Data not S or Q')
 
 
+class SettingsView(ft.View):
+    def __init__(self):
+        super().__init__()
+
+        self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+        self.vertical_alignment = ft.MainAxisAlignment.CENTER
+        self.padding = 200
+        self.appbar = ft.AppBar()
+        self.controls = [
+            ft.ExpansionPanelList(
+
+                controls=[
+                    ft.ExpansionPanel(
+                        bgcolor='#2c333e',
+                        can_tap_header=True,
+                        header=ft.Text('Expansion Panel 1')) for x in range(5)
+                ])
+        ]
+
+
 def main(page):
+    page.vertical_alignment = ft.MainAxisAlignment.CENTER
+    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+
+    def open_settings(e):
+        page.views.append(SettingsView())
+        page.update()
+
+    def pop_view(view):
+        page.views.pop()
+        page.update()
+
+    page.on_view_pop = pop_view
+
+    page.appbar = ft.AppBar(
+        leading=ft.IconButton(tooltip='Settings', icon=ft.icons.SETTINGS, on_click=open_settings))
+
     main_column = ft.Column(
         alignment=ft.MainAxisAlignment.CENTER,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         controls=[ft.Container(ft.ProgressRing(), border_radius=20)])
-
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    page.appbar = ft.AppBar(
-        leading=ft.IconButton(icon=ft.icons.SETTINGS))
 
     comm_handler = CommHandler(page, main_column)
     t_comm = threading.Thread(target=comm_handler.connect)
