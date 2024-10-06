@@ -76,8 +76,7 @@ class CommHandler:
         self.update_content()
 
     def gen_addinf_qr_b64str(self) -> str:
-        data = f'{self.ip_address}:{
-            self.port}'.encode()
+        data = f'{self.ip_address}:{self.port}'.encode()
         qr_img = qrcode.make(base64.b64encode(data).decode('utf-8'), border=2)
         buffered = BytesIO()
         qr_img.save(buffered)
