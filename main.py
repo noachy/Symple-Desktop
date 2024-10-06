@@ -24,6 +24,9 @@ from io import BytesIO
 # TODO: Add option for choosing default download location -> Implement Flet file picker!
 # TODO: Test code and implement error handling where needed
 
+# TODO: when user disconnects show qr code again
+# TODO: refresh qr code on new internet connection/ make it a user choice
+
 # TODO: ...more neat features :)
 
 class CommState(Enum):
