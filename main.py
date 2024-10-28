@@ -18,7 +18,6 @@ from ping3 import ping
 from io import BytesIO
 
 
-# TODO: Add file receive screen -> Switch to screen after connection established -> Return after connection lost
 # TODO: Add titles and instructions
 # TODO: Add styling
 # TODO: Add option for choosing default download location -> Implement Flet file picker!
@@ -33,6 +32,7 @@ class CommState(Enum):
     EMPTY = 1
     WAITING = 2
     CONNECTED = 3
+    RECEIVING = 4
 
 
 class CommHandler:
@@ -65,8 +65,16 @@ class CommHandler:
             case CommState.CONNECTED:
                 self.column.controls = [
                     ft.Text(
-                        value='Placeholder for file receiving screen',
+                        value='Waiting For Files...',
                         size=24)]
+                self.page.update()
+            case CommState.RECEIVING:
+                self.column.controls = [
+                    ft.Text(
+                        value= 'Recieving Files...', 
+                        size=24),
+                    ft.Text(value="Placeholder for File Loading Bar")
+                ]
                 self.page.update()
 
     @property
@@ -203,6 +211,8 @@ class CommHandler:
                         break
 
                     if data.decode() == 'S':
+                        self.comm_state = CommState.RECEIVING
+
                         conn.sendall(b'AckCom')
                         print('Sent AckCom')
                         data = conn.recv(self.buffer_size)
